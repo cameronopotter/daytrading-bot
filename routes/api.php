@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AlpacaStreamController;
+use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\PanicController;
 use App\Http\Controllers\Api\StrategyController;
@@ -16,6 +17,9 @@ Route::get('/account', [TradingReadController::class, 'account']);
 Route::get('/positions', [TradingReadController::class, 'positions']);
 Route::get('/orders', [TradingReadController::class, 'orders']);
 Route::get('/fills', [TradingReadController::class, 'fills']);
+
+// Analytics routes
+Route::get('/analytics/daily-pnl', [AnalyticsController::class, 'dailyPnL']);
 
 // Strategy control routes
 Route::get('/strategy/config', [StrategyController::class, 'show']);

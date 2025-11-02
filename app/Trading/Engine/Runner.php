@@ -104,6 +104,9 @@ class Runner
             'payload' => [
                 'bar' => $barData,
                 'has_order' => $signal->order !== null,
+                'stop_loss' => $signal->stopLoss,
+                'take_profit' => $signal->takeProfit,
+                'reason' => $signal->reason,
             ],
             'created_at' => now(),
         ]);
@@ -116,9 +119,12 @@ class Runner
                 'side' => $signal->order->side,
                 'qty' => $signal->order->qty,
                 'type' => $signal->order->type,
+                'stop_loss' => $signal->stopLoss,
+                'take_profit' => $signal->takeProfit,
+                'reason' => $signal->reason,
             ]);
 
-            ExecuteOrder::dispatch($run->id, $signal->order);
+            ExecuteOrder::dispatch($run->id, $signal->order, $signal->stopLoss, $signal->takeProfit);
 
             Log::info('[ENGINE] ✅ Order dispatched successfully');
         } else {
@@ -135,16 +141,28 @@ class Runner
             ->where('mode', $mode)
             ->first();
 
+        // Get account balance (simplified - from broker in production)
+        $accountBalance = 100000; // Default, will be updated from broker adapter
+
         $state = [
             'position' => null,
             'qty' => 0,
             'avg_entry_price' => 0,
+            'entry_price' => 0,
+            'stop_loss' => null,
+            'take_profit' => null,
+            'trailing_stop' => null,
+            'account_balance' => $accountBalance,
         ];
 
         if ($position && $position->qty > 0) {
             $state['position'] = 'long';
             $state['qty'] = $position->qty;
             $state['avg_entry_price'] = $position->avg_entry_price;
+            $state['entry_price'] = $position->avg_entry_price;
+            $state['stop_loss'] = $position->stop_loss;
+            $state['take_profit'] = $position->take_profit;
+            $state['trailing_stop'] = $position->trailing_stop;
         }
 
         return $state;

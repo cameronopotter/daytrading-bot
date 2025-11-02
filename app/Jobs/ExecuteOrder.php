@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\DecisionLog;
 use App\Models\Order;
+use App\Models\Position;
 use App\Models\StrategyRun;
 use App\Trading\Adapters\AlpacaAdapter;
 use App\Trading\DTO\OrderRequest;
@@ -22,7 +23,9 @@ class ExecuteOrder implements ShouldQueue
      */
     public function __construct(
         public int $strategyRunId,
-        public OrderRequest $orderRequest
+        public OrderRequest $orderRequest,
+        public ?float $stopLoss = null,
+        public ?float $takeProfit = null
     ) {}
 
     /**
@@ -146,13 +149,39 @@ class ExecuteOrder implements ShouldQueue
                 'status' => $result['status'],
             ]);
 
+            // If this is a buy order and we have stop-loss/take-profit, store them in position
+            if ($this->orderRequest->side === 'buy' && ($this->stopLoss !== null || $this->takeProfit !== null)) {
+                $mode = config('trading.mode', 'paper');
+
+                // Find or create position
+                $position = Position::where('symbol', $this->orderRequest->symbol)
+                    ->where('mode', $mode)
+                    ->first();
+
+                if ($position) {
+                    $position->update([
+                        'stop_loss' => $this->stopLoss,
+                        'take_profit' => $this->takeProfit,
+                    ]);
+
+                    Log::info('[EXECUTE ORDER] 🎯 Stop-loss and take-profit set', [
+                        'symbol' => $this->orderRequest->symbol,
+                        'stop_loss' => $this->stopLoss,
+                        'take_profit' => $this->takeProfit,
+                    ]);
+                }
+            }
+
             // Log decision
             DecisionLog::create([
                 'strategy_run_id' => $this->strategyRunId,
                 'level' => 'info',
                 'context' => 'order_placed',
                 'message' => "Order placed: {$result['side']} {$result['qty']} {$result['symbol']}",
-                'payload' => $result,
+                'payload' => array_merge($result, [
+                    'stop_loss' => $this->stopLoss,
+                    'take_profit' => $this->takeProfit,
+                ]),
                 'created_at' => now(),
             ]);
 
