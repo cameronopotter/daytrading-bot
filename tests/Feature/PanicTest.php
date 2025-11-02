@@ -168,7 +168,7 @@ class PanicTest extends TestCase
         $this->assertDatabaseHas('decision_logs', [
             'level' => 'warn',
             'context' => 'panic',
-            'message' => 'Panic button pressed',
+            'message' => 'PANIC: Flatten all positions and cancel orders triggered',
         ]);
     }
 
@@ -190,11 +190,15 @@ class PanicTest extends TestCase
                 'results',
             ]);
 
-        // Verify error was logged
+        // Verify decision log was still created (with warn level, but errors in payload)
         $this->assertDatabaseHas('decision_logs', [
-            'level' => 'error',
+            'level' => 'warn',
             'context' => 'panic',
         ]);
+
+        // Verify error was included in the payload
+        $log = DecisionLog::where('context', 'panic')->first();
+        $this->assertNotEmpty($log->payload['errors']);
     }
 
     public function test_panic_does_not_cancel_already_filled_orders()

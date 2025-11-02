@@ -8,7 +8,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class AlpacaAdapterTest extends TestCase
 {
@@ -18,7 +18,10 @@ class AlpacaAdapterTest extends TestCase
         $handlerStack = HandlerStack::create($mock);
         $client = new Client(['handler' => $handlerStack]);
 
-        return new AlpacaAdapter($client);
+        $adapter = new AlpacaAdapter();
+        $adapter->setClient($client);
+
+        return $adapter;
     }
 
     public function test_get_account_maps_response_correctly()

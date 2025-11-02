@@ -3,7 +3,8 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "stream": "node alpaca-stream.js"
     },
     "devDependencies": {
         "@inertiajs/vue3": "^2.0.0",
@@ -19,7 +20,9 @@
         "vue": "^3.4.0"
     },
     "dependencies": {
+        "dotenv": "^16.3.1",
         "laravel-echo": "^2.2.4",
-        "pusher-js": "^8.4.0"
+        "pusher-js": "^8.4.0",
+        "ws": "^8.14.2"
     }
 }

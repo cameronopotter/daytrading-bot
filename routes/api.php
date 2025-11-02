@@ -20,6 +20,7 @@ Route::get('/fills', [TradingReadController::class, 'fills']);
 // Strategy control routes
 Route::get('/strategy/config', [StrategyController::class, 'show']);
 Route::post('/strategy/config', [StrategyController::class, 'update']);
+Route::put('/strategy/config', [StrategyController::class, 'update']);
 Route::post('/strategy/start', [StrategyController::class, 'start']);
 Route::post('/strategy/stop', [StrategyController::class, 'stop']);
 
