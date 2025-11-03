@@ -7,7 +7,9 @@ use App\Trading\Signals\Signal;
 class SMA implements Strategy
 {
     private array $config;
+
     private array $closePrices = [];
+
     private ?string $position = null; // null, 'long'
 
     public function __construct(array $config)
@@ -34,7 +36,7 @@ class SMA implements Strategy
 
         // Need enough data for both SMAs
         if (count($this->closePrices) < $this->config['slow']) {
-            return Signal::noAction('Warming up: ' . count($this->closePrices) . '/' . $this->config['slow']);
+            return Signal::noAction('Warming up: '.count($this->closePrices).'/'.$this->config['slow']);
         }
 
         // Calculate SMAs
@@ -92,6 +94,7 @@ class SMA implements Strategy
     private function calculateSMA(int $period, int $offset = 0): float
     {
         $slice = array_slice($this->closePrices, -($period + $offset), $period);
+
         return array_sum($slice) / count($slice);
     }
 }

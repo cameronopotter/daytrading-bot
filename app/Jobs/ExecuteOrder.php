@@ -43,16 +43,17 @@ class ExecuteOrder implements ShouldQueue
 
         $run = StrategyRun::find($this->strategyRunId);
 
-        if (!$run || $run->status !== 'running') {
+        if (! $run || $run->status !== 'running') {
             Log::warning('[EXECUTE ORDER] Strategy run not active', [
                 'run_id' => $this->strategyRunId,
                 'run_status' => $run?->status ?? 'not found',
             ]);
+
             return;
         }
 
         // Generate client order ID if not provided
-        if (!$this->orderRequest->clientId) {
+        if (! $this->orderRequest->clientId) {
             $this->orderRequest->clientId = (string) Str::uuid();
         }
 
@@ -70,7 +71,7 @@ class ExecuteOrder implements ShouldQueue
             'order_qty' => $this->orderRequest->qty,
         ]);
 
-        if (!$riskGuard->allows($this->orderRequest, $state)) {
+        if (! $riskGuard->allows($this->orderRequest, $state)) {
             Log::warning('[EXECUTE ORDER] ⛔ RISK GUARD DENIED', [
                 'order' => [
                     'symbol' => $this->orderRequest->symbol,
@@ -202,7 +203,7 @@ class ExecuteOrder implements ShouldQueue
                 'strategy_run_id' => $this->strategyRunId,
                 'level' => 'error',
                 'context' => 'order_failed',
-                'message' => 'Failed to place order: ' . $e->getMessage(),
+                'message' => 'Failed to place order: '.$e->getMessage(),
                 'payload' => [
                     'symbol' => $this->orderRequest->symbol,
                     'side' => $this->orderRequest->side,

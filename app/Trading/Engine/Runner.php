@@ -32,6 +32,7 @@ class Runner
 
         if ($runs->isEmpty()) {
             Log::debug("[ENGINE] ⏭️  No active runs for {$symbol}");
+
             return;
         }
 
@@ -51,7 +52,7 @@ class Runner
                     'strategy_run_id' => $run->id,
                     'level' => 'error',
                     'context' => 'engine_error',
-                    'message' => 'Failed to process bar: ' . $e->getMessage(),
+                    'message' => 'Failed to process bar: '.$e->getMessage(),
                     'payload' => ['bar' => $barData],
                     'created_at' => now(),
                 ]);
@@ -65,8 +66,9 @@ class Runner
         $config = $run->strategy->config;
 
         // Instantiate strategy
-        if (!class_exists($strategyClass)) {
+        if (! class_exists($strategyClass)) {
             Log::warning("[ENGINE] Strategy class not found: {$strategyClass}");
+
             return;
         }
 
@@ -85,8 +87,9 @@ class Runner
 
         $signal = $strategy->onBar($barData, $state);
 
-        if (!$signal) {
+        if (! $signal) {
             Log::debug('[ENGINE] Strategy returned null signal');
+
             return;
         }
 

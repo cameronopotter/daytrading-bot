@@ -31,7 +31,7 @@ class PanicService
             $results['positions_closed'] = true;
             Log::info('[PANIC] All positions closed');
         } catch (\Exception $e) {
-            $results['errors'][] = 'Failed to close positions: ' . $e->getMessage();
+            $results['errors'][] = 'Failed to close positions: '.$e->getMessage();
             Log::error('[PANIC ERROR] Failed to close positions', ['error' => $e->getMessage()]);
         }
 
@@ -47,7 +47,7 @@ class PanicService
                         $results['orders_canceled']++;
                     }
                 } catch (\Exception $e) {
-                    $results['errors'][] = "Failed to cancel order {$order->id}: " . $e->getMessage();
+                    $results['errors'][] = "Failed to cancel order {$order->id}: ".$e->getMessage();
                     Log::error('[PANIC ERROR] Failed to cancel order', [
                         'order_id' => $order->id,
                         'error' => $e->getMessage(),
@@ -57,7 +57,7 @@ class PanicService
 
             Log::info('[PANIC] Canceled orders', ['count' => $results['orders_canceled']]);
         } catch (\Exception $e) {
-            $results['errors'][] = 'Failed to cancel orders: ' . $e->getMessage();
+            $results['errors'][] = 'Failed to cancel orders: '.$e->getMessage();
             Log::error('[PANIC ERROR] Failed to cancel orders', ['error' => $e->getMessage()]);
         }
 
@@ -85,7 +85,7 @@ class PanicService
                 Log::info('[PANIC] All running strategy runs stopped');
             }
         } catch (\Exception $e) {
-            $results['errors'][] = 'Failed to stop runs: ' . $e->getMessage();
+            $results['errors'][] = 'Failed to stop runs: '.$e->getMessage();
             Log::error('[PANIC ERROR] Failed to stop runs', ['error' => $e->getMessage()]);
         }
 

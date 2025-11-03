@@ -2,18 +2,24 @@
 
 namespace App\Trading\Strategies;
 
-use App\Trading\Signals\Signal;
 use App\Trading\Indicators\TechnicalIndicators;
+use App\Trading\Signals\Signal;
 use Illuminate\Support\Facades\Log;
 
 class EnhancedSMA implements Strategy
 {
     private array $config;
+
     private array $bars = []; // Store full bar data (OHLCV)
+
     private ?string $position = null;
+
     private ?float $entryPrice = null;
+
     private ?float $stopLoss = null;
+
     private ?float $takeProfit = null;
+
     private ?float $trailingStop = null;
 
     public function __construct(array $config)
@@ -106,7 +112,7 @@ class EnhancedSMA implements Strategy
 
         // Need enough data
         if (count($this->bars) < $this->config['slow'] + $this->config['atr_period']) {
-            return Signal::noAction('Warming up: ' . count($this->bars) . ' bars collected');
+            return Signal::noAction('Warming up: '.count($this->bars).' bars collected');
         }
 
         // Check if we have an open position with stops
@@ -121,7 +127,7 @@ class EnhancedSMA implements Strategy
     private function lookForEntry(array $bar): ?Signal
     {
         // Time-of-day filter
-        if ($this->config['use_time_filter'] && !$this->isWithinTradingHours($bar)) {
+        if ($this->config['use_time_filter'] && ! $this->isWithinTradingHours($bar)) {
             return Signal::noAction('Outside trading hours');
         }
 
@@ -157,8 +163,8 @@ class EnhancedSMA implements Strategy
         // Detect crossover
         $crossUp = $prevFastSMA <= $prevSlowSMA && $fastSMA > $slowSMA;
 
-        if (!$crossUp) {
-            return Signal::noAction("No crossover (Fast: " . round($fastSMA, 2) . ", Slow: " . round($slowSMA, 2) . ")");
+        if (! $crossUp) {
+            return Signal::noAction('No crossover (Fast: '.round($fastSMA, 2).', Slow: '.round($slowSMA, 2).')');
         }
 
         // We have a crossover - now apply filters
@@ -172,7 +178,7 @@ class EnhancedSMA implements Strategy
             }
 
             if ($rsi > $this->config['rsi_overbought']) {
-                return Signal::noAction("RSI overbought: " . round($rsi, 2) . " > " . $this->config['rsi_overbought']);
+                return Signal::noAction('RSI overbought: '.round($rsi, 2).' > '.$this->config['rsi_overbought']);
             }
 
             Log::info('[STRATEGY] RSI check passed', ['rsi' => round($rsi, 2)]);
@@ -192,7 +198,7 @@ class EnhancedSMA implements Strategy
             }
 
             if ($macd['histogram'] < 0) {
-                return Signal::noAction("MACD histogram negative: " . round($macd['histogram'], 4));
+                return Signal::noAction('MACD histogram negative: '.round($macd['histogram'], 4));
             }
 
             Log::info('[STRATEGY] MACD check passed', ['histogram' => round($macd['histogram'], 4)]);
@@ -206,13 +212,13 @@ class EnhancedSMA implements Strategy
             if ($avgVolume === null) {
                 Log::warning('[STRATEGY] Cannot calculate average volume');
             } elseif ($currentVolume < $avgVolume * $this->config['volume_multiplier']) {
-                return Signal::noAction("Low volume: " . $currentVolume . " < " . round($avgVolume * $this->config['volume_multiplier']));
+                return Signal::noAction('Low volume: '.$currentVolume.' < '.round($avgVolume * $this->config['volume_multiplier']));
             }
 
             Log::info('[STRATEGY] Volume check passed', [
                 'current' => $currentVolume,
                 'avg' => round($avgVolume ?? 0),
-                'required' => round(($avgVolume ?? 0) * $this->config['volume_multiplier'])
+                'required' => round(($avgVolume ?? 0) * $this->config['volume_multiplier']),
             ]);
         }
 
@@ -263,7 +269,7 @@ class EnhancedSMA implements Strategy
             Log::warning('[STRATEGY] 🛑 STOP-LOSS HIT', [
                 'current_price' => $currentPrice,
                 'stop_loss' => $this->stopLoss,
-                'loss' => round(($currentPrice - $this->entryPrice) * $this->config['qty'], 2)
+                'loss' => round(($currentPrice - $this->entryPrice) * $this->config['qty'], 2),
             ]);
 
             return Signal::sell(
@@ -279,7 +285,7 @@ class EnhancedSMA implements Strategy
             Log::info('[STRATEGY] 🎯 TAKE-PROFIT HIT', [
                 'current_price' => $currentPrice,
                 'take_profit' => $this->takeProfit,
-                'profit' => round(($currentPrice - $this->entryPrice) * $this->config['qty'], 2)
+                'profit' => round(($currentPrice - $this->entryPrice) * $this->config['qty'], 2),
             ]);
 
             return Signal::sell(
@@ -309,7 +315,7 @@ class EnhancedSMA implements Strategy
                             'old_trailing' => $oldTrailing,
                             'new_trailing' => round($this->trailingStop, 2),
                             'current_price' => $currentPrice,
-                            'locked_profit' => round(($this->stopLoss - $this->entryPrice) * $this->config['qty'], 2)
+                            'locked_profit' => round(($this->stopLoss - $this->entryPrice) * $this->config['qty'], 2),
                         ]);
                     }
                 }
@@ -334,7 +340,7 @@ class EnhancedSMA implements Strategy
                         'fast_sma' => round($fastSMA, 2),
                         'slow_sma' => round($slowSMA, 2),
                         'current_price' => $currentPrice,
-                        'pnl' => round(($currentPrice - $this->entryPrice) * $this->config['qty'], 2)
+                        'pnl' => round(($currentPrice - $this->entryPrice) * $this->config['qty'], 2),
                     ]);
 
                     return Signal::sell(
@@ -347,12 +353,12 @@ class EnhancedSMA implements Strategy
             }
         }
 
-        return Signal::noAction("Holding position (Price: $currentPrice, Stop: " . round($this->stopLoss ?? 0, 2) . ", Target: " . round($this->takeProfit ?? 0, 2) . ")");
+        return Signal::noAction("Holding position (Price: $currentPrice, Stop: ".round($this->stopLoss ?? 0, 2).', Target: '.round($this->takeProfit ?? 0, 2).')');
     }
 
     private function detectMarketRegime(): string
     {
-        if (!$this->config['use_regime_filter']) {
+        if (! $this->config['use_regime_filter']) {
             return 'UNKNOWN';
         }
 
@@ -385,34 +391,37 @@ class EnhancedSMA implements Strategy
             Log::info('[REGIME] TRENDING market detected', [
                 'adx' => round($adx, 2),
                 'bb_width' => round($bbWidth, 4),
-                'avg_bb_width' => round($avgBBWidth, 4)
+                'avg_bb_width' => round($avgBBWidth, 4),
             ]);
+
             return 'TRENDING';
         } elseif ($adx < $this->config['adx_ranging_threshold'] && $bbWidth < $avgBBWidth * 0.8) {
             Log::info('[REGIME] RANGING market detected', [
                 'adx' => round($adx, 2),
                 'bb_width' => round($bbWidth, 4),
-                'avg_bb_width' => round($avgBBWidth, 4)
+                'avg_bb_width' => round($avgBBWidth, 4),
             ]);
+
             return 'RANGING';
         } else {
             Log::info('[REGIME] UNCERTAIN market conditions', [
                 'adx' => round($adx, 2),
                 'bb_width' => round($bbWidth, 4),
-                'avg_bb_width' => round($avgBBWidth, 4)
+                'avg_bb_width' => round($avgBBWidth, 4),
             ]);
+
             return 'UNCERTAIN';
         }
     }
 
     private function calculatePositionSize(float $entryPrice, float $stopLoss, string $regime): int
     {
-        if (!$this->config['use_dynamic_sizing']) {
+        if (! $this->config['use_dynamic_sizing']) {
             // Use fixed size but respect regime
             $baseQty = $this->config['qty'];
 
             if ($regime === 'UNCERTAIN') {
-                return (int)floor($baseQty * 0.5); // Half size in uncertain markets
+                return (int) floor($baseQty * 0.5); // Half size in uncertain markets
             }
 
             return $baseQty;
@@ -430,6 +439,7 @@ class EnhancedSMA implements Strategy
 
         if ($riskPerShare <= 0) {
             Log::warning('[POSITION SIZING] Risk per share is zero or negative');
+
             return $this->config['qty'];
         }
 
@@ -446,20 +456,20 @@ class EnhancedSMA implements Strategy
 
         Log::info('[POSITION SIZING] Calculated position', [
             'account_balance' => $accountBalance,
-            'risk_per_trade' => $riskPerTrade * 100 . '%',
+            'risk_per_trade' => $riskPerTrade * 100 .'%',
             'risk_amount' => round($riskAmount, 2),
             'risk_per_share' => round($riskPerShare, 2),
             'calculated_shares' => $shares,
             'regime_adjustment' => $regime,
-            'max_allowed' => $maxPositionSize
+            'max_allowed' => $maxPositionSize,
         ]);
 
-        return max(1, (int)$shares);
+        return max(1, (int) $shares);
     }
 
     private function isWithinTradingHours(array $bar): bool
     {
-        if (!isset($bar['timestamp'])) {
+        if (! isset($bar['timestamp'])) {
             return true; // If no timestamp, allow trading
         }
 

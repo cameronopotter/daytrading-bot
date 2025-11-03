@@ -6,7 +6,6 @@ use App\Models\Order;
 use App\Models\RiskLimit;
 use App\Trading\DTO\OrderRequest;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 
 class RiskGuard
 {
@@ -17,23 +16,23 @@ class RiskGuard
         // Get risk limits for current mode
         $riskLimit = RiskLimit::where('mode', $mode)->first();
 
-        if (!$riskLimit) {
+        if (! $riskLimit) {
             // No risk limits configured - allow (for MVP)
             return true;
         }
 
         // Check daily P&L limit
-        if (!$this->checkDailyLoss($riskLimit, $state)) {
+        if (! $this->checkDailyLoss($riskLimit, $state)) {
             return false;
         }
 
         // Check max position size
-        if (!$this->checkPositionSize($orderRequest, $riskLimit)) {
+        if (! $this->checkPositionSize($orderRequest, $riskLimit)) {
             return false;
         }
 
         // Check order rate limit
-        if (!$this->checkOrderRate($riskLimit)) {
+        if (! $this->checkOrderRate($riskLimit)) {
             return false;
         }
 
@@ -50,6 +49,7 @@ class RiskGuard
                 'day_pl' => $dayPnL,
                 'limit' => $riskLimit->daily_max_loss,
             ]);
+
             return false;
         }
 
@@ -63,6 +63,7 @@ class RiskGuard
                 'qty' => $orderRequest->qty,
                 'limit' => $riskLimit->max_position_qty,
             ]);
+
             return false;
         }
 
@@ -71,7 +72,7 @@ class RiskGuard
 
     private function checkOrderRate(RiskLimit $riskLimit): bool
     {
-        $key = 'risk:order_rate:' . now()->format('Y-m-d-H-i');
+        $key = 'risk:order_rate:'.now()->format('Y-m-d-H-i');
 
         $count = Cache::get($key, 0);
 
@@ -80,6 +81,7 @@ class RiskGuard
                 'count' => $count,
                 'limit' => $riskLimit->max_orders_per_min,
             ]);
+
             return false;
         }
 

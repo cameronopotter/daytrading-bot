@@ -18,7 +18,7 @@ class AlpacaAdapterTest extends TestCase
         $handlerStack = HandlerStack::create($mock);
         $client = new Client(['handler' => $handlerStack]);
 
-        $adapter = new AlpacaAdapter();
+        $adapter = new AlpacaAdapter;
         $adapter->setClient($client);
 
         return $adapter;

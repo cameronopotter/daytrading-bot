@@ -18,7 +18,7 @@ class RiskGuardTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->riskGuard = new RiskGuard();
+        $this->riskGuard = new RiskGuard;
 
         // Create default risk limits
         RiskLimit::create([

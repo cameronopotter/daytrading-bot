@@ -17,15 +17,17 @@ class AlpacaStreamController extends Controller
         $signature = $request->header('X-Stream-Signature');
         $payload = $request->getContent();
 
-        if (!$signature) {
+        if (! $signature) {
             Log::warning('[WEBHOOK] Missing signature');
+
             return response()->json(['error' => 'Invalid signature'], 403);
         }
 
         $expectedSignature = hash_hmac('sha256', $payload, config('trading.webhook_secret', 'change-me'));
 
-        if (!hash_equals($expectedSignature, $signature)) {
+        if (! hash_equals($expectedSignature, $signature)) {
             Log::warning('[WEBHOOK] Invalid signature');
+
             return response()->json(['error' => 'Invalid signature'], 403);
         }
 
@@ -46,14 +48,15 @@ class AlpacaStreamController extends Controller
 
             return response()->json(['status' => 'ok', 'type' => $eventType]);
         } catch (\Exception $e) {
-            Log::error("[WEBHOOK ERROR] {$eventType}: " . $e->getMessage());
+            Log::error("[WEBHOOK ERROR] {$eventType}: ".$e->getMessage());
+
             return response()->json(['error' => 'Processing failed'], 500);
         }
     }
 
     private function handleBar(array $data): void
     {
-        Log::debug('[BAR] ' . $data['symbol'], $data);
+        Log::debug('[BAR] '.$data['symbol'], $data);
 
         // Dispatch to Engine\Runner for strategy processing
         $runner = app(\App\Trading\Engine\Runner::class);
@@ -63,13 +66,13 @@ class AlpacaStreamController extends Controller
     private function handleQuote(array $data): void
     {
         // Quote data for real-time pricing
-        Log::debug('[QUOTE] ' . $data['symbol'], $data);
+        Log::debug('[QUOTE] '.$data['symbol'], $data);
     }
 
     private function handleTrade(array $data): void
     {
         // Trade tick data
-        Log::debug('[TRADE] ' . $data['symbol'], $data);
+        Log::debug('[TRADE] '.$data['symbol'], $data);
     }
 
     private function handleOrderUpdate(array $data): void
@@ -78,7 +81,7 @@ class AlpacaStreamController extends Controller
         $event = $data['event'] ?? 'update';
         $orderData = $data['order'] ?? $data;
 
-        Log::info('[ORDER UPDATE] ' . $event, $orderData);
+        Log::info('[ORDER UPDATE] '.$event, $orderData);
 
         // Find and update the order in our database
         $order = Order::where('broker_order_id', $orderData['id'] ?? null)

@@ -137,6 +137,7 @@ class TechnicalIndicators
         }
 
         $slice = array_slice($prices, -$period);
+
         return array_sum($slice) / count($slice);
     }
 
@@ -270,7 +271,7 @@ class TechnicalIndicators
             return null;
         }
 
-        $volumes = array_map(fn($bar) => $bar['volume'] ?? 0, $bars);
+        $volumes = array_map(fn ($bar) => $bar['volume'] ?? 0, $bars);
         $recentVolumes = array_slice($volumes, -$period);
 
         return array_sum($recentVolumes) / count($recentVolumes);

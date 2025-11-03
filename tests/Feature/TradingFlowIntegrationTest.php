@@ -2,8 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Jobs\ExecuteOrder;
-use App\Models\DecisionLog;
 use App\Models\Order;
 use App\Models\RiskLimit;
 use App\Models\Strategy;
@@ -11,8 +9,6 @@ use App\Models\StrategyRun;
 use App\Trading\Adapters\AlpacaAdapter;
 use App\Trading\Engine\Runner;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\Queue;
 use Mockery;
 use Tests\TestCase;
 
@@ -92,7 +88,7 @@ class TradingFlowIntegrationTest extends TestCase
             ['symbol' => 'AAPL', 'close' => 110.00, 'open' => 105.00, 'high' => 110.50, 'low' => 104.50, 'volume' => 2500000, 'timestamp' => '2025-11-01T09:35:00Z'], // Cross-up
         ];
 
-        $runner = new Runner();
+        $runner = new Runner;
 
         foreach ($bars as $bar) {
             $runner->processBar($bar);
@@ -100,8 +96,8 @@ class TradingFlowIntegrationTest extends TestCase
 
         // Debug: Check what's in the logs
         $logs = \App\Models\DecisionLog::all();
-        dump('Decision logs count: ' . $logs->count());
-        dump('Contexts: ' . $logs->pluck('context')->toJson());
+        dump('Decision logs count: '.$logs->count());
+        dump('Contexts: '.$logs->pluck('context')->toJson());
 
         // Debug: Check if job was dispatched
         $this->assertDatabaseHas('decision_logs', [
@@ -157,7 +153,7 @@ class TradingFlowIntegrationTest extends TestCase
             ['symbol' => 'AAPL', 'close' => 110.00, 'open' => 105.00, 'high' => 110.50, 'low' => 104.50, 'volume' => 2500000, 'timestamp' => '2025-11-01T09:35:00Z'],
         ];
 
-        $runner = new Runner();
+        $runner = new Runner;
 
         foreach ($bars as $bar) {
             $runner->processBar($bar);
@@ -262,7 +258,7 @@ class TradingFlowIntegrationTest extends TestCase
             ['symbol' => 'AAPL', 'close' => 110.00, 'open' => 105.00, 'high' => 110.50, 'low' => 104.50, 'volume' => 2500000, 'timestamp' => '2025-11-01T09:35:00Z'],
         ];
 
-        $runner = new Runner();
+        $runner = new Runner;
 
         foreach ($bars as $bar) {
             $runner->processBar($bar);

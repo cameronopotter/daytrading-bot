@@ -223,8 +223,8 @@ class WebhookTest extends TestCase
         // Verify order was updated
         $order->refresh();
         $this->assertEquals('filled', $order->status);
-        $this->assertEquals(10, (float)$order->filled_qty);
-        $this->assertEquals(150.00, (float)$order->avg_fill_price);
+        $this->assertEquals(10, (float) $order->filled_qty);
+        $this->assertEquals(150.00, (float) $order->avg_fill_price);
     }
 
     public function test_webhook_updates_position()

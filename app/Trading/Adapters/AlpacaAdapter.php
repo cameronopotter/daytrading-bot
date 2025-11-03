@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 class AlpacaAdapter implements BrokerAdapter
 {
     private Client $client;
+
     private string $baseUrl;
 
     public function __construct()
@@ -39,9 +40,10 @@ class AlpacaAdapter implements BrokerAdapter
     {
         try {
             $response = $this->client->get('/v2/account');
+
             return json_decode($response->getBody()->getContents(), true);
         } catch (GuzzleException $e) {
-            throw new \RuntimeException('Failed to get account: ' . $e->getMessage(), 0, $e);
+            throw new \RuntimeException('Failed to get account: '.$e->getMessage(), 0, $e);
         }
     }
 
@@ -49,9 +51,10 @@ class AlpacaAdapter implements BrokerAdapter
     {
         try {
             $response = $this->client->get('/v2/positions');
+
             return json_decode($response->getBody()->getContents(), true);
         } catch (GuzzleException $e) {
-            throw new \RuntimeException('Failed to get positions: ' . $e->getMessage(), 0, $e);
+            throw new \RuntimeException('Failed to get positions: '.$e->getMessage(), 0, $e);
         }
     }
 
@@ -103,7 +106,7 @@ class AlpacaAdapter implements BrokerAdapter
                 'raw' => $result,
             ];
         } catch (GuzzleException $e) {
-            throw new \RuntimeException('Failed to place order: ' . $e->getMessage(), 0, $e);
+            throw new \RuntimeException('Failed to place order: '.$e->getMessage(), 0, $e);
         }
     }
 
@@ -112,7 +115,7 @@ class AlpacaAdapter implements BrokerAdapter
         try {
             $this->client->delete("/v2/orders/{$brokerOrderId}");
         } catch (GuzzleException $e) {
-            throw new \RuntimeException('Failed to cancel order: ' . $e->getMessage(), 0, $e);
+            throw new \RuntimeException('Failed to cancel order: '.$e->getMessage(), 0, $e);
         }
     }
 
@@ -123,7 +126,7 @@ class AlpacaAdapter implements BrokerAdapter
                 'query' => ['cancel_orders' => 'true'],
             ]);
         } catch (GuzzleException $e) {
-            throw new \RuntimeException('Failed to close all positions: ' . $e->getMessage(), 0, $e);
+            throw new \RuntimeException('Failed to close all positions: '.$e->getMessage(), 0, $e);
         }
     }
 

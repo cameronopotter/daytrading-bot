@@ -13,7 +13,7 @@ class StrategyController extends Controller
     {
         $strategy = Strategy::with('runs')->first();
 
-        if (!$strategy) {
+        if (! $strategy) {
             // Create default strategy if none exists
             $strategy = Strategy::create([
                 'name' => 'SMA Cross',

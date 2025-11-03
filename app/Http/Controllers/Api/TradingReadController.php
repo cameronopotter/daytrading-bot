@@ -14,6 +14,7 @@ class TradingReadController extends Controller
     {
         try {
             $account = $adapter->getAccount();
+
             return response()->json($account);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);

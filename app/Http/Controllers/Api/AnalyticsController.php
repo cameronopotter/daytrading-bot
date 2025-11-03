@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Fill;
-use Illuminate\Support\Facades\DB;
 
 class AnalyticsController extends Controller
 {
@@ -37,8 +36,8 @@ class AnalyticsController extends Controller
                 $sells = $fills->where('side', 'sell');
 
                 // Calculate totals
-                $buyTotal += $buys->sum(fn($f) => $f->price * $f->qty);
-                $sellTotal += $sells->sum(fn($f) => $f->price * $f->qty);
+                $buyTotal += $buys->sum(fn ($f) => $f->price * $f->qty);
+                $sellTotal += $sells->sum(fn ($f) => $f->price * $f->qty);
 
                 // Count trades (each sell is a completed trade)
                 $trades += $sells->count();
