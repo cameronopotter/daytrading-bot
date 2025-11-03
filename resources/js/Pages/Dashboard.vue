@@ -20,18 +20,24 @@ const isSavingConfig = ref(false);
 const fetchData = async () => {
     try {
         const [healthRes, accountRes, positionsRes, ordersRes, fillsRes, strategyRes] = await Promise.all([
-            fetch('/api/health'),
-            fetch('/api/account'),
-            fetch('/api/positions'),
-            fetch('/api/orders'),
-            fetch('/api/fills'),
-            fetch('/api/strategy/config'),
+            fetch('/api/health', { credentials: 'same-origin' }),
+            fetch('/api/account', { credentials: 'same-origin' }),
+            fetch('/api/positions', { credentials: 'same-origin' }),
+            fetch('/api/orders', { credentials: 'same-origin' }),
+            fetch('/api/fills', { credentials: 'same-origin' }),
+            fetch('/api/strategy/config', { credentials: 'same-origin' }),
         ]);
 
         health.value = await healthRes.json();
         mode.value = health.value.mode || 'paper';
 
-        if (accountRes.ok) account.value = await accountRes.json();
+        if (accountRes.ok) {
+            account.value = await accountRes.json();
+        } else {
+            const error = await accountRes.json();
+            console.error('Account fetch failed:', error);
+        }
+
         if (positionsRes.ok) positions.value = await positionsRes.json();
         if (ordersRes.ok) orders.value = await ordersRes.json();
         if (fillsRes.ok) fills.value = await fillsRes.json();
@@ -84,7 +90,11 @@ const saveConfig = async () => {
     try {
         const response = await fetch('/api/strategy/config', {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            },
             body: JSON.stringify({ config: strategyConfig.value }),
         });
 
@@ -104,7 +114,13 @@ const startStrategy = async () => {
     isStarting.value = true;
 
     try {
-        const response = await fetch('/api/strategy/start', { method: 'POST' });
+        const response = await fetch('/api/strategy/start', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            }
+        });
         if (response.ok) {
             strategyStatus.value = 'running';
             await fetchData();
@@ -121,7 +137,13 @@ const stopStrategy = async () => {
     isStopping.value = true;
 
     try {
-        const response = await fetch('/api/strategy/stop', { method: 'POST' });
+        const response = await fetch('/api/strategy/stop', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            }
+        });
         if (response.ok) {
             strategyStatus.value = 'stopped';
             await fetchData();
@@ -140,7 +162,13 @@ const panic = async () => {
     isPanicking.value = true;
 
     try {
-        const response = await fetch('/api/panic', { method: 'POST' });
+        const response = await fetch('/api/panic', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            }
+        });
         if (response.ok) {
             alert('✅ Panic executed successfully');
             await fetchData();
@@ -195,7 +223,7 @@ const formatDate = (date) => {
                     <div class="flex items-center gap-2">
                         <span :class="health.status === 'ok' ? 'bg-emerald-500' : 'bg-red-500'" class="w-2 h-2 rounded-full"></span>
                         <span :class="health.status === 'ok' ? 'text-emerald-400' : 'text-red-400'" class="font-medium text-sm">
-                            {{ health.status === 'ok' ? 'Online' : 'Offline' }}
+                            {{ health.status === 'ok' ? 'Connected' : 'Disconnected' }}
                         </span>
                     </div>
                 </div>

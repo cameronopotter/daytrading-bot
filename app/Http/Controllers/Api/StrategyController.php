@@ -51,7 +51,15 @@ class StrategyController extends Controller
     public function start()
     {
         $strategy = Strategy::firstOrFail();
-        $mode = config('trading.mode', 'paper');
+        $user = auth()->user();
+
+        // Use user's preference if available, otherwise fall back to config
+        $mode = 'paper';
+        if ($user && $user->hasAlpacaCredentials()) {
+            $mode = $user->alpaca_is_paper ? 'paper' : 'live';
+        } else {
+            $mode = config('trading.mode', 'paper');
+        }
 
         // Stop any running strategy runs
         StrategyRun::where('status', 'running')->update([

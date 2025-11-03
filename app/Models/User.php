@@ -21,6 +21,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'alpaca_key_id',
+        'alpaca_secret',
+        'alpaca_is_paper',
     ];
 
     /**
@@ -31,6 +34,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'alpaca_key_id',
+        'alpaca_secret',
     ];
 
     /**
@@ -43,6 +48,17 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'alpaca_key_id' => 'encrypted',
+            'alpaca_secret' => 'encrypted',
+            'alpaca_is_paper' => 'boolean',
         ];
+    }
+
+    /**
+     * Check if user has Alpaca credentials configured
+     */
+    public function hasAlpacaCredentials(): bool
+    {
+        return !empty($this->alpaca_key_id) && !empty($this->alpaca_secret);
     }
 }

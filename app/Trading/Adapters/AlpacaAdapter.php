@@ -14,20 +14,38 @@ class AlpacaAdapter implements BrokerAdapter
 
     private string $baseUrl;
 
-    public function __construct()
+    public function __construct(string $keyId, string $secret, bool $isPaper = true)
     {
-        $this->baseUrl = config('services.alpaca.base_url');
+        $this->baseUrl = $isPaper
+            ? 'https://paper-api.alpaca.markets'
+            : 'https://api.alpaca.markets';
 
         $this->client = new Client([
             'base_uri' => $this->baseUrl,
             'headers' => [
-                'APCA-API-KEY-ID' => config('services.alpaca.key_id'),
-                'APCA-API-SECRET-KEY' => config('services.alpaca.secret'),
+                'APCA-API-KEY-ID' => $keyId,
+                'APCA-API-SECRET-KEY' => $secret,
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             ],
             'timeout' => 30,
         ]);
+    }
+
+    /**
+     * Create an AlpacaAdapter instance from a User model
+     */
+    public static function fromUser(\App\Models\User $user): self
+    {
+        if (!$user->hasAlpacaCredentials()) {
+            throw new \RuntimeException('User does not have Alpaca credentials configured');
+        }
+
+        return new self(
+            $user->alpaca_key_id,
+            $user->alpaca_secret,
+            $user->alpaca_is_paper
+        );
     }
 
     // Method for testing - allows injecting a mocked HTTP client
