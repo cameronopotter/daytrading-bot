@@ -13,25 +13,20 @@ class RiskGuard
     {
         $mode = config('trading.mode', 'paper');
 
-        // Get risk limits for current mode
         $riskLimit = RiskLimit::where('mode', $mode)->first();
 
         if (! $riskLimit) {
-            // No risk limits configured - allow (for MVP)
             return true;
         }
 
-        // Check daily P&L limit
         if (! $this->checkDailyLoss($riskLimit, $state)) {
             return false;
         }
 
-        // Check max position size
         if (! $this->checkPositionSize($orderRequest, $riskLimit)) {
             return false;
         }
 
-        // Check order rate limit
         if (! $this->checkOrderRate($riskLimit)) {
             return false;
         }
@@ -41,7 +36,6 @@ class RiskGuard
 
     private function checkDailyLoss(RiskLimit $riskLimit, array $state): bool
     {
-        // Get today's P&L (simplified - from account or computed)
         $dayPnL = $state['day_pl'] ?? 0;
 
         if ($dayPnL < -$riskLimit->daily_max_loss) {
@@ -92,7 +86,6 @@ class RiskGuard
 
     public function getDailyPnL(): float
     {
-        // Calculate daily P&L from filled orders
         $today = now()->startOfDay();
 
         $orders = Order::where('status', 'filled')
@@ -104,7 +97,7 @@ class RiskGuard
         foreach ($orders as $order) {
             if ($order->side === 'sell') {
                 $pnl += ($order->avg_fill_price * $order->filled_qty);
-            } else { // buy
+            } else {
                 $pnl -= ($order->avg_fill_price * $order->filled_qty);
             }
         }

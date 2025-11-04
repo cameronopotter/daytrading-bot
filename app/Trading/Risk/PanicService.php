@@ -26,7 +26,6 @@ class PanicService
         ];
 
         try {
-            // 1. Close all positions via broker
             $this->adapter->closeAllPositions();
             $results['positions_closed'] = true;
             Log::info('[PANIC] All positions closed');
@@ -36,7 +35,6 @@ class PanicService
         }
 
         try {
-            // 2. Cancel all open orders
             $openOrders = Order::whereIn('status', ['new', 'partially_filled'])->get();
 
             foreach ($openOrders as $order) {
@@ -62,7 +60,6 @@ class PanicService
         }
 
         try {
-            // 3. Stop the strategy run if specified
             if ($strategyRunId) {
                 $run = StrategyRun::find($strategyRunId);
                 if ($run && $run->status === 'running') {
@@ -75,7 +72,6 @@ class PanicService
                     Log::info('[PANIC] Strategy run stopped', ['run_id' => $strategyRunId]);
                 }
             } else {
-                // Stop all running strategy runs
                 StrategyRun::where('status', 'running')->update([
                     'status' => 'stopped',
                     'stopped_at' => now(),
@@ -89,7 +85,6 @@ class PanicService
             Log::error('[PANIC ERROR] Failed to stop runs', ['error' => $e->getMessage()]);
         }
 
-        // Log the panic event
         DecisionLog::create([
             'strategy_run_id' => $strategyRunId,
             'level' => 'warn',

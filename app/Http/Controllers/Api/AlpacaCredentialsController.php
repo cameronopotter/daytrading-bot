@@ -9,9 +9,6 @@ use GuzzleHttp\Exception\GuzzleException;
 
 class AlpacaCredentialsController extends Controller
 {
-    /**
-     * Test Alpaca API connection with provided credentials
-     */
     public function testConnection(Request $request)
     {
         $validated = $request->validate([
@@ -58,9 +55,6 @@ class AlpacaCredentialsController extends Controller
         }
     }
 
-    /**
-     * Check current user's Alpaca connection status
-     */
     public function status(Request $request)
     {
         $user = $request->user();

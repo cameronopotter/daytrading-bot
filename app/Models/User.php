@@ -54,9 +54,6 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * Check if user has Alpaca credentials configured
-     */
     public function hasAlpacaCredentials(): bool
     {
         return !empty($this->alpaca_key_id) && !empty($this->alpaca_secret);

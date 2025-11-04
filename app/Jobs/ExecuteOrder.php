@@ -52,7 +52,6 @@ class ExecuteOrder implements ShouldQueue
             return;
         }
 
-        // Generate client order ID if not provided
         if (! $this->orderRequest->clientId) {
             $this->orderRequest->clientId = (string) Str::uuid();
         }
@@ -61,7 +60,6 @@ class ExecuteOrder implements ShouldQueue
             'client_order_id' => $this->orderRequest->clientId,
         ]);
 
-        // Check risk limits
         $state = [
             'day_pl' => $riskGuard->getDailyPnL(),
         ];
@@ -105,7 +103,6 @@ class ExecuteOrder implements ShouldQueue
                 'type' => $this->orderRequest->type,
             ]);
 
-            // Place order via broker adapter
             $result = $adapter->placeOrder($this->orderRequest);
 
             Log::info('[EXECUTE ORDER] ✅ Alpaca response received', [
@@ -113,7 +110,6 @@ class ExecuteOrder implements ShouldQueue
                 'status' => $result['status'],
             ]);
 
-            // Persist order in database
             $order = Order::create([
                 'strategy_run_id' => $this->strategyRunId,
                 'client_order_id' => $result['client_order_id'],
@@ -150,11 +146,9 @@ class ExecuteOrder implements ShouldQueue
                 'status' => $result['status'],
             ]);
 
-            // If this is a buy order and we have stop-loss/take-profit, store them in position
             if ($this->orderRequest->side === 'buy' && ($this->stopLoss !== null || $this->takeProfit !== null)) {
                 $mode = config('trading.mode', 'paper');
 
-                // Find or create position
                 $position = Position::where('symbol', $this->orderRequest->symbol)
                     ->where('mode', $mode)
                     ->first();
@@ -173,7 +167,6 @@ class ExecuteOrder implements ShouldQueue
                 }
             }
 
-            // Log decision
             DecisionLog::create([
                 'strategy_run_id' => $this->strategyRunId,
                 'level' => 'info',
@@ -185,9 +178,6 @@ class ExecuteOrder implements ShouldQueue
                 ]),
                 'created_at' => now(),
             ]);
-
-            // TODO: Broadcast event to UI
-            // event(new OrderPlaced($order));
 
         } catch (\Exception $e) {
             Log::error('[EXECUTE ORDER ERROR]', [

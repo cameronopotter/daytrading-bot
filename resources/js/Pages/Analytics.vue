@@ -18,7 +18,6 @@ const fetchAnalytics = async () => {
             const data = await response.json();
             dailyPnL.value = data.daily_pnl || [];
 
-            // Calculate stats
             totalPnL.value = dailyPnL.value.reduce((sum, day) => sum + day.pnl, 0);
             winDays.value = dailyPnL.value.filter(day => day.pnl > 0).length;
             lossDays.value = dailyPnL.value.filter(day => day.pnl < 0).length;
@@ -38,13 +37,11 @@ const getColorClass = (pnl) => {
     const absValue = Math.abs(pnl);
 
     if (pnl > 0) {
-        // Green for profits
         if (absValue > 1000) return 'bg-emerald-500 border-emerald-400';
         if (absValue > 500) return 'bg-emerald-600 border-emerald-500';
         if (absValue > 100) return 'bg-emerald-700 border-emerald-600';
         return 'bg-emerald-800 border-emerald-700';
     } else {
-        // Red for losses
         if (absValue > 1000) return 'bg-red-500 border-red-400';
         if (absValue > 500) return 'bg-red-600 border-red-500';
         if (absValue > 100) return 'bg-red-700 border-red-600';
@@ -70,7 +67,6 @@ const getDayOfWeek = (dateString) => {
     return date.toLocaleDateString('en-US', { weekday: 'short' });
 };
 
-// Group by weeks for calendar layout
 const weeklyData = computed(() => {
     const weeks = [];
     let currentWeek = [];
@@ -78,7 +74,6 @@ const weeklyData = computed(() => {
     dailyPnL.value.forEach((day, index) => {
         currentWeek.push(day);
 
-        // If it's Sunday or the last day, start a new week
         const dayOfWeek = new Date(day.date).getDay();
         if (dayOfWeek === 0 || index === dailyPnL.value.length - 1) {
             weeks.push([...currentWeek]);
@@ -91,7 +86,6 @@ const weeklyData = computed(() => {
 
 onMounted(() => {
     fetchData();
-    // Refresh every 30 seconds
     setInterval(fetchAnalytics, 30000);
 });
 

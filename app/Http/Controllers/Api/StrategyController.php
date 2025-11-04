@@ -14,7 +14,6 @@ class StrategyController extends Controller
         $strategy = Strategy::with('runs')->first();
 
         if (! $strategy) {
-            // Create default strategy if none exists
             $strategy = Strategy::create([
                 'name' => 'SMA Cross',
                 'class' => \App\Trading\Strategies\SMA::class,
@@ -53,7 +52,6 @@ class StrategyController extends Controller
         $strategy = Strategy::firstOrFail();
         $user = auth()->user();
 
-        // Use user's preference if available, otherwise fall back to config
         $mode = 'paper';
         if ($user && $user->hasAlpacaCredentials()) {
             $mode = $user->alpaca_is_paper ? 'paper' : 'live';
@@ -61,13 +59,11 @@ class StrategyController extends Controller
             $mode = config('trading.mode', 'paper');
         }
 
-        // Stop any running strategy runs
         StrategyRun::where('status', 'running')->update([
             'status' => 'stopped',
             'stopped_at' => now(),
         ]);
 
-        // Create new run
         $run = StrategyRun::create([
             'strategy_id' => $strategy->id,
             'status' => 'running',

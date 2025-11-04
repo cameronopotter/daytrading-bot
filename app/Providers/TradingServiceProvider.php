@@ -13,7 +13,6 @@ class TradingServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Bind the BrokerAdapter interface to AlpacaAdapter
         $this->app->singleton(BrokerAdapter::class, AlpacaAdapter::class);
         $this->app->singleton(AlpacaAdapter::class);
     }

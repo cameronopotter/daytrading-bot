@@ -60,7 +60,6 @@ class TradingReadController extends Controller
     {
         $user = auth()->user();
 
-        // Use user's preference if available, otherwise fall back to config
         $mode = 'paper';
         if ($user && $user->hasAlpacaCredentials()) {
             $mode = $user->alpaca_is_paper ? 'paper' : 'live';

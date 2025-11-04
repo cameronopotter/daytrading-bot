@@ -21,7 +21,6 @@ class Runner
             'timestamp' => $barData['timestamp'] ?? null,
         ]);
 
-        // Find active strategy runs for this symbol
         $runs = StrategyRun::where('status', 'running')
             ->whereHas('strategy', function ($q) use ($symbol) {
                 $q->where('is_enabled', true)
@@ -65,7 +64,6 @@ class Runner
         $strategyClass = $run->strategy->class;
         $config = $run->strategy->config;
 
-        // Instantiate strategy
         if (! class_exists($strategyClass)) {
             Log::warning("[ENGINE] Strategy class not found: {$strategyClass}");
 
@@ -75,10 +73,8 @@ class Runner
         /** @var Strategy $strategy */
         $strategy = new $strategyClass($config);
 
-        // Build state (current position, etc.)
         $state = $this->buildState($run, $config['symbol']);
 
-        // Call strategy
         Log::info('[ENGINE] 🧮 Calling strategy', [
             'strategy' => $strategy->name(),
             'symbol' => $config['symbol'],
@@ -98,7 +94,6 @@ class Runner
             'note' => $signal->note,
         ]);
 
-        // Log the signal
         DecisionLog::create([
             'strategy_run_id' => $run->id,
             'level' => 'info',
@@ -114,7 +109,6 @@ class Runner
             'created_at' => now(),
         ]);
 
-        // If signal has an order, dispatch job
         if ($signal->order) {
             Log::info('[ENGINE] 🚀 DISPATCHING ORDER TO QUEUE!', [
                 'run_id' => $run->id,
@@ -139,13 +133,11 @@ class Runner
     {
         $mode = config('trading.mode', 'paper');
 
-        // Get current position for this symbol
         $position = Position::where('symbol', $symbol)
             ->where('mode', $mode)
             ->first();
 
-        // Get account balance (simplified - from broker in production)
-        $accountBalance = 100000; // Default, will be updated from broker adapter
+        $accountBalance = 100000;
 
         $state = [
             'position' => null,

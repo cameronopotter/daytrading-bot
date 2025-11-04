@@ -4,9 +4,6 @@ namespace App\Trading\Indicators;
 
 class TechnicalIndicators
 {
-    /**
-     * Calculate Average True Range (ATR)
-     */
     public static function calculateATR(array $bars, int $period = 14): ?float
     {
         if (count($bars) < $period + 1) {
@@ -29,15 +26,11 @@ class TechnicalIndicators
             $trueRanges[] = $tr;
         }
 
-        // Take the last $period true ranges
         $recentTR = array_slice($trueRanges, -$period);
 
         return array_sum($recentTR) / count($recentTR);
     }
 
-    /**
-     * Calculate Relative Strength Index (RSI)
-     */
     public static function calculateRSI(array $prices, int $period = 14): ?float
     {
         if (count($prices) < $period + 1) {
@@ -59,7 +52,6 @@ class TechnicalIndicators
             }
         }
 
-        // Get last $period values
         $recentGains = array_slice($gains, -$period);
         $recentLosses = array_slice($losses, -$period);
 
@@ -76,9 +68,6 @@ class TechnicalIndicators
         return $rsi;
     }
 
-    /**
-     * Calculate MACD (Moving Average Convergence Divergence)
-     */
     public static function calculateMACD(array $prices, int $fastPeriod = 12, int $slowPeriod = 26, int $signalPeriod = 9): ?array
     {
         if (count($prices) < $slowPeriod + $signalPeriod) {
@@ -94,20 +83,13 @@ class TechnicalIndicators
 
         $macdLine = $fastEMA - $slowEMA;
 
-        // Calculate signal line (EMA of MACD line)
-        // For simplicity, we'll approximate with SMA for now
-        // In production, you'd want to track MACD history and calculate proper EMA
-
         return [
             'macd' => $macdLine,
-            'signal' => $macdLine, // Simplified - ideally calculate EMA of MACD line
-            'histogram' => 0, // macd - signal
+            'signal' => $macdLine,
+            'histogram' => 0,
         ];
     }
 
-    /**
-     * Calculate Exponential Moving Average (EMA)
-     */
     public static function calculateEMA(array $prices, int $period): ?float
     {
         if (count($prices) < $period) {
@@ -116,20 +98,15 @@ class TechnicalIndicators
 
         $k = 2 / ($period + 1);
 
-        // Start with SMA
         $sma = array_sum(array_slice($prices, -$period, $period)) / $period;
         $ema = $sma;
 
-        // Calculate EMA (simplified - ideally you'd iterate through all prices)
         $currentPrice = end($prices);
         $ema = ($currentPrice * $k) + ($ema * (1 - $k));
 
         return $ema;
     }
 
-    /**
-     * Calculate Simple Moving Average (SMA)
-     */
     public static function calculateSMA(array $prices, int $period): ?float
     {
         if (count($prices) < $period) {
@@ -141,9 +118,6 @@ class TechnicalIndicators
         return array_sum($slice) / count($slice);
     }
 
-    /**
-     * Calculate Average Directional Index (ADX)
-     */
     public static function calculateADX(array $bars, int $period = 14): ?float
     {
         if (count($bars) < $period + 1) {
@@ -161,7 +135,6 @@ class TechnicalIndicators
             $prevLow = $bars[$i - 1]['low'];
             $prevClose = $bars[$i - 1]['close'];
 
-            // Calculate +DM and -DM
             $upMove = $high - $prevHigh;
             $downMove = $prevLow - $low;
 
@@ -177,7 +150,6 @@ class TechnicalIndicators
                 $minusDM[] = 0;
             }
 
-            // Calculate True Range
             $tr = max(
                 $high - $low,
                 abs($high - $prevClose),
@@ -186,7 +158,6 @@ class TechnicalIndicators
             $trueRanges[] = $tr;
         }
 
-        // Get recent values
         $recentPlusDM = array_slice($plusDM, -$period);
         $recentMinusDM = array_slice($minusDM, -$period);
         $recentTR = array_slice($trueRanges, -$period);
@@ -209,13 +180,9 @@ class TechnicalIndicators
 
         $dx = 100 * abs($plusDI - $minusDI) / $diSum;
 
-        // ADX is smoothed DX (simplified version)
         return $dx;
     }
 
-    /**
-     * Calculate Bollinger Bands
-     */
     public static function calculateBollingerBands(array $prices, int $period = 20, float $stdDev = 2): ?array
     {
         if (count($prices) < $period) {
@@ -228,7 +195,6 @@ class TechnicalIndicators
             return null;
         }
 
-        // Calculate standard deviation
         $slice = array_slice($prices, -$period);
         $variance = 0;
 
@@ -243,13 +209,10 @@ class TechnicalIndicators
             'upper' => $sma + ($stdDev * $standardDeviation),
             'middle' => $sma,
             'lower' => $sma - ($stdDev * $standardDeviation),
-            'width' => ($stdDev * $standardDeviation * 2), // Total width
+            'width' => ($stdDev * $standardDeviation * 2),
         ];
     }
 
-    /**
-     * Calculate Bollinger Band Width (for volatility measurement)
-     */
     public static function calculateBBWidth(array $prices, int $period = 20, float $stdDev = 2): ?float
     {
         $bb = self::calculateBollingerBands($prices, $period, $stdDev);
@@ -258,13 +221,9 @@ class TechnicalIndicators
             return null;
         }
 
-        // Normalized width
         return ($bb['upper'] - $bb['lower']) / $bb['middle'];
     }
 
-    /**
-     * Calculate average volume
-     */
     public static function calculateAverageVolume(array $bars, int $period = 20): ?float
     {
         if (count($bars) < $period) {

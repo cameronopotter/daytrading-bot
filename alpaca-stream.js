@@ -5,20 +5,16 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 
-// Load environment variables from .env file
 dotenv.config();
 
-// Configuration
 const ALPACA_KEY_ID = process.env.ALPACA_KEY_ID;
 const ALPACA_SECRET = process.env.ALPACA_SECRET;
 const ALPACA_DATA_WS = process.env.ALPACA_DATA_WS || 'wss://stream.data.alpaca.markets/v2/sip';
 const WEBHOOK_SECRET = process.env.STREAM_WEBHOOK_SECRET;
 const WEBHOOK_URL = process.env.STREAM_WEBHOOK_URL || 'http://localhost:8000/api/stream/alpaca';
 
-// Symbols to subscribe to (you can make this dynamic later)
 const SYMBOLS = ['AAPL'];
 
-// Validate configuration
 if (!ALPACA_KEY_ID || !ALPACA_SECRET) {
     console.error('❌ ERROR: Missing Alpaca credentials in .env file');
     console.error('   Please set ALPACA_KEY_ID and ALPACA_SECRET');
@@ -41,7 +37,6 @@ let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 10;
 const RECONNECT_DELAY = 5000;
 
-// Generate HMAC signature for webhook
 function signPayload(payload) {
     const payloadStr = JSON.stringify(payload);
     return crypto
@@ -50,7 +45,6 @@ function signPayload(payload) {
         .digest('hex');
 }
 
-// Send event to Laravel webhook
 async function sendToWebhook(type, data) {
     try {
         const payload = { type, data };
@@ -73,12 +67,10 @@ async function sendToWebhook(type, data) {
     }
 }
 
-// Handle incoming WebSocket messages
 function handleMessage(message) {
     try {
         const data = JSON.parse(message);
 
-        // Handle different message types
         data.forEach((msg) => {
             const msgType = msg.T;
 
@@ -95,7 +87,7 @@ function handleMessage(message) {
                     console.error('❌ Alpaca error:', msg.msg, msg.code);
                     break;
 
-                case 'b': // Bar (minute bar)
+                case 'b':
                     const bar = {
                         symbol: msg.S,
                         open: msg.o,
@@ -109,7 +101,7 @@ function handleMessage(message) {
                     sendToWebhook('bar', bar);
                     break;
 
-                case 'q': // Quote
+                case 'q':
                     const quote = {
                         symbol: msg.S,
                         bid: msg.bp,
@@ -118,11 +110,10 @@ function handleMessage(message) {
                         ask_size: msg.as,
                         timestamp: msg.t,
                     };
-                    // Don't log quotes (too noisy), just send to webhook
                     sendToWebhook('quote', quote);
                     break;
 
-                case 't': // Trade
+                case 't':
                     const trade = {
                         symbol: msg.S,
                         price: msg.p,
@@ -143,7 +134,6 @@ function handleMessage(message) {
     }
 }
 
-// Connect to Alpaca WebSocket
 function connect() {
     console.log(`🔌 Connecting to Alpaca WebSocket... (attempt ${reconnectAttempts + 1})`);
 
@@ -153,7 +143,6 @@ function connect() {
         console.log('✅ WebSocket connected!');
         reconnectAttempts = 0;
 
-        // Authenticate
         const authMsg = {
             action: 'auth',
             key: ALPACA_KEY_ID,
@@ -162,7 +151,6 @@ function connect() {
         ws.send(JSON.stringify(authMsg));
         console.log('🔐 Sent authentication...');
 
-        // Subscribe to bars (minute bars) after a short delay to ensure auth completes
         setTimeout(() => {
             const subscribeMsg = {
                 action: 'subscribe',
@@ -184,7 +172,6 @@ function connect() {
     ws.on('close', (code, reason) => {
         console.warn(`⚠️  WebSocket closed: ${code} - ${reason || 'No reason provided'}`);
 
-        // Attempt to reconnect
         if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
             reconnectAttempts++;
             console.log(`🔄 Reconnecting in ${RECONNECT_DELAY / 1000} seconds...`);
@@ -196,7 +183,6 @@ function connect() {
     });
 }
 
-// Graceful shutdown
 process.on('SIGINT', () => {
     console.log('\n👋 Shutting down gracefully...');
     if (ws) {
@@ -213,5 +199,4 @@ process.on('SIGTERM', () => {
     process.exit(0);
 });
 
-// Start the streamer
 connect();

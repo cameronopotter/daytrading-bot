@@ -32,9 +32,6 @@ class AlpacaAdapter implements BrokerAdapter
         ]);
     }
 
-    /**
-     * Create an AlpacaAdapter instance from a User model
-     */
     public static function fromUser(\App\Models\User $user): self
     {
         if (!$user->hasAlpacaCredentials()) {
@@ -48,7 +45,6 @@ class AlpacaAdapter implements BrokerAdapter
         );
     }
 
-    // Method for testing - allows injecting a mocked HTTP client
     public function setClient(Client $client): void
     {
         $this->client = $client;
@@ -107,7 +103,6 @@ class AlpacaAdapter implements BrokerAdapter
 
             $result = json_decode($response->getBody()->getContents(), true);
 
-            // Normalize to our format
             return [
                 'broker_order_id' => $result['id'] ?? null,
                 'client_order_id' => $result['client_order_id'] ?? $payload['client_order_id'],

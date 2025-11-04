@@ -12,7 +12,6 @@ Route::get('/', function () {
     return redirect()->route('login');
 })->name('home');
 
-// Legal Pages
 Route::get('/privacy-policy', function () {
     return Inertia::render('Legal/PrivacyPolicy');
 })->name('privacy.policy');

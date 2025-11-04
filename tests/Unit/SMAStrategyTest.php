@@ -33,7 +33,6 @@ class SMAStrategyTest extends TestCase
 
         $strategy = new SMA($config);
 
-        // Only 2 bars, need at least slow period (5)
         $bar1 = ['symbol' => 'AAPL', 'close' => 100.00];
         $bar2 = ['symbol' => 'AAPL', 'close' => 101.00];
 
@@ -55,13 +54,12 @@ class SMAStrategyTest extends TestCase
 
         $strategy = new SMA($config);
 
-        // Prices trending down then up to create cross-up
         $bars = [
             ['symbol' => 'AAPL', 'close' => 100.00],
             ['symbol' => 'AAPL', 'close' => 99.00],
             ['symbol' => 'AAPL', 'close' => 98.00],
-            ['symbol' => 'AAPL', 'close' => 97.00],  // Fast SMA < Slow SMA
-            ['symbol' => 'AAPL', 'close' => 105.00], // Fast jumps up, cross-up occurs here
+            ['symbol' => 'AAPL', 'close' => 97.00],
+            ['symbol' => 'AAPL', 'close' => 105.00],
         ];
 
         $signal = null;
@@ -86,27 +84,24 @@ class SMAStrategyTest extends TestCase
 
         $strategy = new SMA($config);
 
-        // First get into a long position with cross-up
         $setupBars = [
             ['symbol' => 'AAPL', 'close' => 100.00],
             ['symbol' => 'AAPL', 'close' => 99.00],
             ['symbol' => 'AAPL', 'close' => 98.00],
             ['symbol' => 'AAPL', 'close' => 97.00],
             ['symbol' => 'AAPL', 'close' => 105.00],
-            ['symbol' => 'AAPL', 'close' => 110.00], // Cross-up
+            ['symbol' => 'AAPL', 'close' => 110.00],
         ];
 
         foreach ($setupBars as $bar) {
             $strategy->onBar($bar, []);
         }
 
-        // Simulate being in a long position
         $state = ['position' => 'long'];
 
-        // Now cross-down with falling prices
         $crossDownBars = [
             ['symbol' => 'AAPL', 'close' => 95.00],
-            ['symbol' => 'AAPL', 'close' => 90.00], // Cross-down occurs
+            ['symbol' => 'AAPL', 'close' => 90.00],
         ];
 
         $signal = null;
@@ -143,10 +138,8 @@ class SMAStrategyTest extends TestCase
             $strategy->onBar($bar, []);
         }
 
-        // Simulate already being long
         $state = ['position' => 'long'];
 
-        // Another cross-up
         $signal = $strategy->onBar(['symbol' => 'AAPL', 'close' => 110.00], $state);
 
         $this->assertNull($signal->order);
@@ -163,7 +156,6 @@ class SMAStrategyTest extends TestCase
 
         $strategy = new SMA($config);
 
-        // Start high
         $bars = [
             ['symbol' => 'AAPL', 'close' => 110.00],
             ['symbol' => 'AAPL', 'close' => 109.00],
@@ -175,13 +167,10 @@ class SMAStrategyTest extends TestCase
             $strategy->onBar($bar, []);
         }
 
-        // Not in a position (flat)
         $state = [];
 
-        // Cross-down
         $signal = $strategy->onBar(['symbol' => 'AAPL', 'close' => 95.00], $state);
 
-        // Should not generate sell signal when not in position
         $this->assertNull($signal->order);
     }
 
@@ -196,8 +185,6 @@ class SMAStrategyTest extends TestCase
 
         $strategy = new SMA($config);
 
-        // Feed known prices: 100, 102, 104
-        // SMA(3) = (100 + 102 + 104) / 3 = 102
         $bars = [
             ['symbol' => 'AAPL', 'close' => 100.00],
             ['symbol' => 'AAPL', 'close' => 102.00],
@@ -208,8 +195,6 @@ class SMAStrategyTest extends TestCase
             $strategy->onBar($bar, []);
         }
 
-        // We can't directly test SMA value, but we can verify no cross occurs
-        // when fast === slow (should never cross)
         $signal = $strategy->onBar(['symbol' => 'AAPL', 'close' => 106.00], []);
 
         $this->assertNull($signal->order);

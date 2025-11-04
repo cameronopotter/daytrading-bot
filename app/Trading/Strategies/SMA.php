@@ -10,7 +10,7 @@ class SMA implements Strategy
 
     private array $closePrices = [];
 
-    private ?string $position = null; // null, 'long'
+    private ?string $position = null;
 
     public function __construct(array $config)
     {
@@ -25,32 +25,25 @@ class SMA implements Strategy
 
     public function onBar(array $bar, array $state): ?Signal
     {
-        // Add close price to our rolling array
         $this->closePrices[] = $bar['close'];
 
-        // Keep only the prices we need (slow period + buffer)
         $maxLength = $this->config['slow'] + 10;
         if (count($this->closePrices) > $maxLength) {
             array_shift($this->closePrices);
         }
 
-        // Need enough data for both SMAs
         if (count($this->closePrices) < $this->config['slow']) {
             return Signal::noAction('Warming up: '.count($this->closePrices).'/'.$this->config['slow']);
         }
 
-        // Calculate SMAs
         $fastSMA = $this->calculateSMA($this->config['fast']);
         $slowSMA = $this->calculateSMA($this->config['slow']);
 
-        // Previous SMAs for cross detection
         $prevFastSMA = $this->calculateSMA($this->config['fast'], 1);
         $prevSlowSMA = $this->calculateSMA($this->config['slow'], 1);
 
-        // Track current position from state
         $this->position = $state['position'] ?? null;
 
-        // Detect crosses
         $crossUp = $prevFastSMA <= $prevSlowSMA && $fastSMA > $slowSMA;
         $crossDown = $prevFastSMA >= $prevSlowSMA && $fastSMA < $slowSMA;
 
@@ -64,9 +57,7 @@ class SMA implements Strategy
             'cross_down' => $crossDown,
         ]);
 
-        // Signal generation (flat-to-long only for MVP)
         if ($crossUp && $this->position !== 'long') {
-            // Buy signal
             return Signal::buy(
                 symbol: $this->config['symbol'],
                 qty: $this->config['qty'],
@@ -75,7 +66,6 @@ class SMA implements Strategy
         }
 
         if ($crossDown && $this->position === 'long') {
-            // Sell signal (close position)
             return Signal::sell(
                 symbol: $this->config['symbol'],
                 qty: $this->config['qty'],
